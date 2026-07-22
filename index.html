@@ -58,6 +58,7 @@
     position: relative;
     cursor: crosshair;
     overflow-x: hidden;
+    touch-action: manipulation;
     transition: background .2s ease, color .2s ease;
   }
 
@@ -70,15 +71,15 @@
   pointer-events: none;
     }
     #stars { width: 1px; height: 1px; box-shadow: var(--stars-sm); animation: animStar 50s linear infinite; }
-    #stars::after { content: ""; position: absolute; top: 2000px; width: 1px; height: 1px; box-shadow: var(--stars-sm); }
+    #stars::after { content: ""; position: absolute; top: var(--star-field-h, 2000px); width: 1px; height: 1px; box-shadow: var(--stars-sm); }
     #stars2 { width: 2px; height: 2px; box-shadow: var(--stars-md); animation: animStar 100s linear infinite; }
-    #stars2::after { content: ""; position: absolute; top: 2000px; width: 2px; height: 2px; box-shadow: var(--stars-md); }
+    #stars2::after { content: ""; position: absolute; top: var(--star-field-h, 2000px); width: 2px; height: 2px; box-shadow: var(--stars-md); }
     #stars3 { width: 3px; height: 3px; box-shadow: var(--stars-lg); animation: animStar 150s linear infinite; }
-    #stars3::after { content: ""; position: absolute; top: 2000px; width: 3px; height: 3px; box-shadow: var(--stars-lg); }
+    #stars3::after { content: ""; position: absolute; top: var(--star-field-h, 2000px); width: 3px; height: 3px; box-shadow: var(--stars-lg); }
 
     @keyframes animStar {
     from { transform: translateY(0px); }
-    to   { transform: translateY(-2000px); }
+    to   { transform: translateY(calc(-1 * var(--star-field-h, 2000px))); }
     }
 
   /* ---------- DVD-ник ---------- */
@@ -310,18 +311,21 @@ try {
 } catch (e) {}
 
 // ---------- Звёздное небо ----------
-function multipleBoxShadow(n) {
+function multipleBoxShadow(n, maxW, maxH) {
   const parts = [];
   for (let i = 0; i < n; i++) {
-    parts.push(`${Math.floor(Math.random() * 2000)}px ${Math.floor(Math.random() * 2000)}px var(--star-color)`);
+    parts.push(`${Math.floor(Math.random() * maxW)}px ${Math.floor(Math.random() * maxH)}px var(--star-color)`);
   }
   return parts.join(",");
 }
 (function initStars() {
+  const fieldW = Math.max(window.innerWidth, document.documentElement.scrollWidth);
+  const fieldH = window.innerHeight;
   const small = window.innerWidth < 640;
-  document.documentElement.style.setProperty("--stars-sm", multipleBoxShadow(small ? 350 : 700));
-  document.documentElement.style.setProperty("--stars-md", multipleBoxShadow(small ? 100 : 200));
-  document.documentElement.style.setProperty("--stars-lg", multipleBoxShadow(small ? 50 : 100));
+  document.documentElement.style.setProperty("--star-field-h", fieldH + "px");
+  document.documentElement.style.setProperty("--stars-sm", multipleBoxShadow(small ? 350 : 700, fieldW, fieldH));
+  document.documentElement.style.setProperty("--stars-md", multipleBoxShadow(small ? 100 : 200, fieldW, fieldH));
+  document.documentElement.style.setProperty("--stars-lg", multipleBoxShadow(small ? 50 : 100, fieldW, fieldH));
 })();
 
 // ---------- DVD-ник ----------
@@ -447,25 +451,23 @@ onChildAdded(ref(db, "notes"), (snapshot) => {
 // ---------- Форма добавления заметки ----------
 let activeForm = null;
 
-document.addEventListener("dblclick", (e) => {
-  if (e.target.closest(".repo-card") || e.target.closest(".note-form") || e.target.closest(".theme-toggle")) return;
+function openNoteForm(pageX, pageY, targetEl) {
+  if (targetEl && (targetEl.closest(".repo-card") || targetEl.closest(".note-form") || targetEl.closest(".theme-toggle"))) return;
   if (activeForm) activeForm.remove();
 
-  const xPct = (e.pageX / document.documentElement.scrollWidth) * 100;
-  const yPct = (e.pageY / document.documentElement.scrollHeight) * 100;
+  const xPct = (pageX / document.documentElement.scrollWidth) * 100;
+  const yPct = (pageY / document.documentElement.scrollHeight) * 100;
 
   const form = document.createElement("div");
   form.className = "note-form";
-  form.style.left = Math.min(xPct, 75) + "%";
+  form.style.left = Math.min(xPct, 70) + "%";
   form.style.top = yPct + "%";
   form.innerHTML = `
-    
-			
-			<textarea maxlength="${MAX_LENGTH}" placeholder="Ваше сообщение…"></textarea>
-			<div class="row">
-				<span class="counter">0/${MAX_LENGTH}</span>
-				<button type="button">Оставить</button>
-			</div>`;
+    <textarea maxlength="${MAX_LENGTH}" placeholder="Ваше сообщение…"></textarea>
+    <div class="row">
+      <span class="counter">0/${MAX_LENGTH}</span>
+      <button type="button">Оставить</button>
+    </div>`;
 
   document.body.appendChild(form);
   activeForm = form;
@@ -532,7 +534,52 @@ document.addEventListener("dblclick", (e) => {
     },
     { once: true, capture: true }
   );
+  document.addEventListener(
+    "touchend",
+    (ev) => {
+      if (form.contains(ev.target)) return;
+      form.remove();
+      if (activeForm === form) activeForm = null;
+    },
+    { once: true, capture: true }
+  );
+}
+
+document.addEventListener("dblclick", (e) => {
+  openNoteForm(e.pageX, e.pageY, e.target);
 });
+
+// Резервное определение двойного тапа — на случай, если touch-action:manipulation
+// не даёт браузеру сгенерировать dblclick (старые версии некоторых мобильных браузеров)
+let lastTapTime = 0;
+let lastTapX = 0;
+let lastTapY = 0;
+const DOUBLE_TAP_MS = 400;
+const DOUBLE_TAP_DIST = 40;
+
+document.addEventListener(
+  "touchend",
+  (e) => {
+    if (e.target.closest(".note-form") || e.target.closest(".theme-toggle")) return;
+    const touch = e.changedTouches[0];
+    if (!touch) return;
+
+    const now = Date.now();
+    const dx = Math.abs(touch.pageX - lastTapX);
+    const dy = Math.abs(touch.pageY - lastTapY);
+
+    if (now - lastTapTime < DOUBLE_TAP_MS && dx < DOUBLE_TAP_DIST && dy < DOUBLE_TAP_DIST) {
+      e.preventDefault();
+      lastTapTime = 0;
+      openNoteForm(touch.pageX, touch.pageY, e.target);
+    } else {
+      lastTapTime = now;
+      lastTapX = touch.pageX;
+      lastTapY = touch.pageY;
+    }
+  },
+  { passive: false }
+);
 
 loadRepos();
 
