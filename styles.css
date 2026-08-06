@@ -1,0 +1,375 @@
+@font-face {
+  font-family: "Cera Stencil Pro Trial";
+  src: url("fonts/CeraStencilPro-Bold.woff2") format("woff2"),
+    url("fonts/CeraStencilPro-Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root,
+[data-theme="dark"] {
+  --bg: #000000;
+  --panel: #0a0a0a;
+  --border: #1f1f1f;
+  --text: #e8e8e8;
+  --muted: #949494;
+  --accent: #58a6ff;
+  --star-color: #fff;
+}
+
+[data-theme="light"] {
+  --bg: #ffffff;
+  --panel: #f4f4f6;
+  --border: #dcdce0;
+  --text: #15161a;
+  --muted: #5a5b60;
+  --accent: #0969da;
+  --star-color: #b0bfae;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Cera Stencil Pro Trial", "Arial Black", Impact, sans-serif;
+  font-weight: 700;
+  position: relative;
+  cursor: crosshair;
+  overflow-x: hidden;
+  touch-action: manipulation;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+/* ---------- Звёздное небо (самый задний фон) ---------- */
+#stars,
+#stars2,
+#stars3 {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  z-index: 0;
+  pointer-events: none;
+}
+
+#stars {
+  width: 1px;
+  height: 1px;
+  box-shadow: var(--stars-sm);
+  animation: animStar 50s linear infinite;
+}
+
+#stars::after {
+  content: "";
+  position: absolute;
+  top: var(--star-field-h, 2000px);
+  width: 1px;
+  height: 1px;
+  box-shadow: var(--stars-sm);
+}
+
+#stars2 {
+  width: 2px;
+  height: 2px;
+  box-shadow: var(--stars-md);
+  animation: animStar 100s linear infinite;
+}
+
+#stars2::after {
+  content: "";
+  position: absolute;
+  top: var(--star-field-h, 2000px);
+  width: 2px;
+  height: 2px;
+  box-shadow: var(--stars-md);
+}
+
+#stars3 {
+  width: 3px;
+  height: 3px;
+  box-shadow: var(--stars-lg);
+  animation: animStar 150s linear infinite;
+}
+
+#stars3::after {
+  content: "";
+  position: absolute;
+  top: var(--star-field-h, 2000px);
+  width: 3px;
+  height: 3px;
+  box-shadow: var(--stars-lg);
+}
+
+@keyframes animStar {
+  from {
+    transform: translateY(0px);
+  }
+  to {
+    transform: translateY(calc(-1 * var(--star-field-h, 2000px)));
+  }
+}
+
+/* ---------- DVD-ник ---------- */
+#dvd-clone {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  pointer-events: none;
+  white-space: nowrap;
+  will-change: left, top;
+}
+
+/* ---------- Переключатель темы ---------- */
+.theme-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 50;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.08);
+}
+
+/* ---------- Шапка ---------- */
+header {
+  position: relative;
+  z-index: 2;
+  padding: 60px 24px 24px;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0 0 8px;
+  font-size: 32px;
+}
+
+header p {
+  color: var(--muted);
+  margin: 0;
+}
+
+header .hint {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--accent);
+}
+
+.donate {
+  margin-top: 16px;
+}
+
+.donate a {
+  display: inline-block;
+  padding: 9px 20px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent), #a855f7);
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(88, 166, 255, 0.35);
+  transition: transform 0.2s ease;
+}
+
+.donate a:hover {
+  transform: translateY(-2px);
+}
+
+/* ---------- Основной блок ---------- */
+main {
+  position: relative;
+  z-index: 2;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 24px 200px;
+}
+
+main h2 {
+  text-align: center;
+}
+
+.repos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.repo-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  cursor: default;
+}
+
+.repo-card a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.repo-card a:hover {
+  text-decoration: underline;
+}
+
+.repo-card p {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 8px 0 0;
+  min-height: 32px;
+}
+
+.repo-meta {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  gap: 12px;
+}
+
+/* ---------- Заметки ---------- */
+.note {
+  position: absolute;
+  max-width: min(220px, 60vw);
+  color: #1a1a1a;
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.35;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  transform: rotate(var(--rot, -2deg));
+  word-break: break-word;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.note-form {
+  position: absolute;
+  z-index: 10;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  cursor: default;
+  max-width: 90vw;
+}
+
+.note-form textarea {
+  width: 220px;
+  max-width: 70vw;
+  height: 60px;
+  resize: none;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.note-form .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.note-form .counter {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.note-form button {
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.note-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  z-index: 100;
+  display: none;
+}
+
+/* ---------- Доступность ---------- */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #stars,
+  #stars2,
+  #stars3 {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  header {
+    padding: 44px 16px 16px;
+  }
+
+  header h1 {
+    font-size: 24px;
+  }
+
+  .repos {
+    grid-template-columns: 1fr;
+  }
+
+  .theme-toggle {
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+}

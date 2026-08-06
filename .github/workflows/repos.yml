@@ -1,0 +1,35 @@
+name: Update repos.json
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"   # каждые 6 часов
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: repos-json
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Получить список репозиториев
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api "users/genius8loci/repos?sort=updated&per_page=12" \
+            --jq '[.[] | {name, html_url, description, language, stargazers_count}]' \
+            > repos.json
+
+      - name: Закоммитить изменения
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add repos.json
+          git diff --staged --quiet || git commit -m "chore: обновление repos.json"
+          git push
